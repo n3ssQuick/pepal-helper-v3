@@ -1,6 +1,3 @@
-Bien sûr, voici une version mise à jour de votre README avec toutes les sections et informations pertinentes :
-
-```markdown
 # Helper v3 API
 
 Helper v3 est une API backend écrite en Go pour interagir avec un outil pédagogique existant codé en PHP. L'API permet de gérer l'authentification des utilisateurs, de récupérer les IDs des cours, de vérifier le statut de présence et de marquer la présence pour les cours de la journée.
@@ -206,4 +203,3 @@ ENTRYPOINT [ "/helper-api" ]
     }
 
     > Pour récupérer l'UUID, il faudra tout d'abord trouver le lien de téléchargement du calendrier sur Pepal. Il suffit de se diriger vers l'emploi du temps, puis il sera tout simplement en haut à droite.
-    ```
