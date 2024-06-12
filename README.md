@@ -1,3 +1,6 @@
+Bien sûr, voici une version mise à jour de votre README avec toutes les sections et informations pertinentes :
+
+```markdown
 # Helper v3 API
 
 Helper v3 est une API backend écrite en Go pour interagir avec un outil pédagogique existant codé en PHP. L'API permet de gérer l'authentification des utilisateurs, de récupérer les IDs des cours, de vérifier le statut de présence et de marquer la présence pour les cours de la journée.
@@ -66,9 +69,9 @@ RUN chmod +x helper-api
 ENTRYPOINT [ "/helper-api" ]
 ```
 
-### Endpoints
+## Endpoints
 
-#### Login
+### Login
 
 - **Endpoint**: `/login`
 - **Méthode**: POST
@@ -89,7 +92,7 @@ ENTRYPOINT [ "/helper-api" ]
     }
     ```
 
-#### Get Course IDs
+### Get Course IDs
 
 - **Endpoint**: `/getCourseIDs`
 - **Méthode**: POST
@@ -120,7 +123,7 @@ ENTRYPOINT [ "/helper-api" ]
     }
     ```
 
-#### Get Attendance Status
+### Get Attendance Status
 
 - **Endpoint**: `/getAttendanceStatus`
 - **Méthode**: POST
@@ -141,7 +144,7 @@ ENTRYPOINT [ "/helper-api" ]
     }
     ```
 
-#### Set Presence
+### Set Presence
 
 - **Endpoint**: `/setPresence`
 - **Méthode**: POST
@@ -162,6 +165,45 @@ ENTRYPOINT [ "/helper-api" ]
     }
     ```
 
---- 
+### Fetch Calendar
 
-Ce README couvre l'installation, la configuration, l'utilisation de l'API avec et sans Docker. Vous pouvez l'ajuster en fonction de vos besoins spécifiques et ajouter des détails supplémentaires si nécessaire.
+- **Endpoint**: `/fetchCalendar`
+- **Méthode**: POST
+- **Description**: Télécharge et analyse un fichier iCalendar pour récupérer le programme de la semaine.
+- **Corps de la requête**:
+    ```json
+    {
+        "calUUID": "49caac7c643b4be6817db60be4374ee7"
+    }
+    ```
+- **Réponse**:
+    ```json
+    {
+        "body": {
+            "schedule": [
+                {
+                    "day": "2024-06-12",
+                    "full_day": true,
+                    "morning": false,
+                    "afternoon": false,
+                    "remote": false,
+                    "location": "",
+                    "professor": "",
+                    "subject": "entreprise"
+                },
+                {
+                    "day": "2024-06-13",
+                    "full_day": false,
+                    "morning": true,
+                    "afternoon": false,
+                    "remote": false,
+                    "location": "E 561",
+                    "professor": "John DOE",
+                    "subject": "GOLANG"
+                }
+            ]
+        }
+    }
+
+    > Pour récupérer l'UUID, il faudra tout d'abord trouver le lien de téléchargement du calendrier sur Pepal. Il suffit de se diriger vers l'emploi du temps, puis il sera tout simplement en haut à droite.
+    ```

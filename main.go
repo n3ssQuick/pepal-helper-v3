@@ -114,7 +114,7 @@ func addRoutes(api huma.API) {
 		Description: "Fetch the calendar and return the schedule for the week",
 	}, func(ctx context.Context, input *struct {
 		Body struct {
-			CalUUID string `json:"calUUID" example:"wilson_inessa" doc:"Calendar UUID"`
+			CalUUID string `json:"calUUID" example:"49caac7c643b4be6817db60be4374ee7" doc:"Calendar UUID"`
 		}
 	}) (*models.CalendarOutput, error) {
 		resp := &models.CalendarOutput{}
