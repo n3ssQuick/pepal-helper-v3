@@ -160,7 +160,7 @@ ENTRYPOINT [ "/helper-api" ]
     ```json
     {
         "body": {
-            "message": "Presence marked successfully"
+            "message": "Fermé et a déjà été ouvert"
         }
     }
     ```

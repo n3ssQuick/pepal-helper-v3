@@ -1,0 +1,9 @@
+version: "3.9"
+services:
+  app:
+    container_name: helper-v3
+    ports:
+      - 8888:8888
+    build:
+      context: .
+    restart: unless-stopped

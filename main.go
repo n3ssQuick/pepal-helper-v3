@@ -91,18 +91,18 @@ func addRoutes(api huma.API) {
 			Cookie   string `json:"cookie" example:"yourcookie" doc:"Cookie"`
 			CourseID string `json:"courseID" example:"2275021" doc:"Course ID"`
 		}
-	}) (*models.GenericOutput, error) {
+	}) (*models.AttendanceStatusOutput, error) {
+		resp := &models.AttendanceStatusOutput{}
 		err := controllers.SetPresence(input.Body.Cookie, input.Body.CourseID)
 		if err != nil {
 			return nil, err
 		}
-		return &models.GenericOutput{
-			Body: struct {
-				Message string `json:"message"`
-			}{
-				Message: "Presence marked successfully",
-			},
-		}, nil
+		status, err := controllers.GetAttendanceStatus(input.Body.Cookie, input.Body.CourseID)
+		if err != nil {
+			return nil, err
+		}
+		resp.Body.Status = status
+		return resp, nil
 	})
 
 	// Get Calendar

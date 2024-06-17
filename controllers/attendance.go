@@ -1,8 +1,11 @@
 package controllers
 
 import (
+	"bytes"
+	"compress/gzip"
 	"errors"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -248,49 +251,15 @@ func getTextContent(n *html.Node) string {
 func SetPresence(cookie, courseID string) error {
 	godotenv.Load()
 
-	courses, err := GetCourseIDs(cookie)
+	// Call GetAttendanceStatus to check if the attendance is open
+	status, err := GetAttendanceStatus(cookie, courseID)
 	if err != nil {
 		return err
 	}
 
-	validCourse := false
-	for _, course := range courses {
-		if course.ID == courseID {
-			validCourse = true
-			break
-		}
-	}
-
-	if !validCourse {
-		return errors.New("invalid course ID for the current day")
-	}
-
-	// Load the attendance page for the course
-	apiURL := os.Getenv("PEPAL_BASE_URL") + "presences/s/" + courseID
-
-	client := &http.Client{
-		Timeout: 10 * time.Second,
-	}
-
-	req, err := http.NewRequest("GET", apiURL, nil)
-	if err != nil {
-		return err
-	}
-
-	// Define the headers for the GET request
-	req.Header.Set("Host", "www.pepal.eu")
-	req.Header.Set("Accept", "*/*")
-	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("Cookie", "sdv="+cookie)
-
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return errors.New("failed to load presence page")
+	if status != "L'appel est ouvert" {
+		log.Printf("Cannot set presence: %s", status)
+		return errors.New("cannot set presence: " + status)
 	}
 
 	// Set the presence
@@ -299,8 +268,13 @@ func SetPresence(cookie, courseID string) error {
 	data.Set("act", "set_present")
 	data.Set("seance_pk", courseID)
 
-	req, err = http.NewRequest("POST", postURL, strings.NewReader(data.Encode()))
+	client := &http.Client{
+		Timeout: 10 * time.Second,
+	}
+
+	req, err := http.NewRequest("POST", postURL, strings.NewReader(data.Encode()))
 	if err != nil {
+		log.Printf("Error creating POST request for setting presence: %v", err)
 		return err
 	}
 
@@ -312,23 +286,45 @@ func SetPresence(cookie, courseID string) error {
 	req.Header.Set("Accept-Encoding", "gzip, deflate, br")
 	req.Header.Set("Connection", "keep-alive")
 
-	resp, err = client.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
+		log.Printf("Error sending POST request for setting presence: %v", err)
 		return err
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
+		log.Printf("Failed to set presence: %v", resp.Status)
 		return errors.New("failed to set presence")
 	}
 
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
+		log.Printf("Error reading response body for setting presence: %v", err)
 		return err
 	}
-	bodyString := string(bodyBytes)
 
-	if !strings.Contains(bodyString, "success") {
+	// Check if the response is compressed
+	var bodyString string
+	if strings.Contains(resp.Header.Get("Content-Encoding"), "gzip") {
+		reader, err := gzip.NewReader(bytes.NewReader(bodyBytes))
+		if err != nil {
+			log.Printf("Error creating gzip reader: %v", err)
+			return err
+		}
+		defer reader.Close()
+		unzippedBodyBytes, err := io.ReadAll(reader)
+		if err != nil {
+			log.Printf("Error reading unzipped response body: %v", err)
+			return err
+		}
+		bodyString = string(unzippedBodyBytes)
+	} else {
+		bodyString = string(bodyBytes)
+	}
+
+	if !strings.Contains(bodyString, "location.reload();") {
+		log.Println("Presence not marked successfully")
 		return errors.New("presence not marked successfully")
 	}
 
