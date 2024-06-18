@@ -257,7 +257,7 @@ func SetPresence(cookie, courseID string) error {
 		return err
 	}
 
-	if status != "L'appel est ouvert" {
+	if status != "Ouvert et on peut se mettre présent" {
 		log.Printf("Cannot set presence: %s", status)
 		return errors.New("cannot set presence: " + status)
 	}

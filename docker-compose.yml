@@ -7,3 +7,5 @@ services:
     build:
       context: .
     restart: unless-stopped
+    environnement: 
+      - PEPAL_BASE_URL = ""
