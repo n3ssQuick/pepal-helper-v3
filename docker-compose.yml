@@ -7,5 +7,7 @@ services:
     build:
       context: .
     restart: unless-stopped
-    environment: 
-      - PEPAL_BASE_URL = "https://pepal.eu/"
+    env_file:
+      - .env
+    environment:
+      - PEPAL_BASE_URL=${PEPAL_BASE_URL}
