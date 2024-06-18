@@ -14,6 +14,8 @@ WORKDIR /app
 COPY --from=build /app/helper-api /app/helper-api
 COPY .env /app/.env
 
+RUN mkdir -p /app/assets
+
 EXPOSE 8888
 
 RUN chmod +x /app/helper-api
