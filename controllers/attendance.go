@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
@@ -204,17 +205,17 @@ func GetAttendanceStatus(cookie, courseID string) (string, error) {
 				if attr.Key == "class" && strings.Contains(attr.Val, "panel-body") {
 					textContent := getTextContent(n)
 					if strings.Contains(textContent, "L'appel n'est pas encore ouvert") {
-						status = "Fermé et n'a pas été ouvert"
+						status = "Closed"
 					} else if strings.Contains(textContent, "L'appel est clôturé") {
 						if strings.Contains(textContent, "Vous avez été noté présent") {
-							status = "Fermé et a déjà été ouvert"
+							status = "Present"
 						} else {
-							status = "Fermé et a déjà été ouvert"
+							status = "Closed"
 						}
 					} else if strings.Contains(textContent, "Valider la présence en retard") {
-						status = "Ouvert mais en retard"
+						status = "Late"
 					} else if strings.Contains(textContent, "Valider la présence") {
-						status = "Ouvert et on peut se mettre présent"
+						status = "Open"
 					}
 				}
 			}
@@ -256,8 +257,9 @@ func SetPresence(cookie, courseID string) error {
 	if err != nil {
 		return err
 	}
+	fmt.Print(status)
 
-	if status != "Ouvert et on peut se mettre présent" {
+	if status != "Open" {
 		log.Printf("Cannot set presence: %s", status)
 		return errors.New("cannot set presence: " + status)
 	}
