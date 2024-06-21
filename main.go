@@ -44,12 +44,10 @@ func addRoutes(api huma.API) {
 		Summary:     "Get Course IDs",
 		Description: "Get Course IDs for the day",
 	}, func(ctx context.Context, input *struct {
-		Body struct {
-			Cookie string `json:"cookie" example:"yourcookie" doc:"Cookie"`
-		}
+		Cookie string `header:"sdv" json:"cookie" example:"yoursupercookie" doc:"Cookie"`
 	}) (*models.CourseIDsOutput, error) {
 		resp := &models.CourseIDsOutput{}
-		courses, err := controllers.GetCourseIDs(input.Body.Cookie)
+		courses, err := controllers.GetCourseIDs(input.Cookie)
 		if err != nil {
 			return nil, err
 		}
@@ -65,13 +63,13 @@ func addRoutes(api huma.API) {
 		Summary:     "Get Attendance Status",
 		Description: "Get the attendance status for a course",
 	}, func(ctx context.Context, input *struct {
-		Body struct {
-			Cookie   string `json:"cookie" example:"yourcookie" doc:"Cookie"`
+		Cookie string `header:"sdv" json:"cookie" example:"yoursupercookie" doc:"Cookie"`
+		Body   struct {
 			CourseID string `json:"courseID" example:"2275021" doc:"Course ID"`
 		}
 	}) (*models.AttendanceStatusOutput, error) {
 		resp := &models.AttendanceStatusOutput{}
-		status, err := controllers.GetAttendanceStatus(input.Body.Cookie, input.Body.CourseID)
+		status, err := controllers.GetAttendanceStatus(input.Cookie, input.Body.CourseID)
 		if err != nil {
 			return nil, err
 		}
@@ -87,17 +85,17 @@ func addRoutes(api huma.API) {
 		Summary:     "Set Presence",
 		Description: "Mark presence for a course",
 	}, func(ctx context.Context, input *struct {
-		Body struct {
-			Cookie   string `json:"cookie" example:"yourcookie" doc:"Cookie"`
+		Cookie string `header:"sdv" json:"cookie" example:"yoursupercookie" doc:"Cookie"`
+		Body   struct {
 			CourseID string `json:"courseID" example:"2275021" doc:"Course ID"`
 		}
 	}) (*models.AttendanceStatusOutput, error) {
 		resp := &models.AttendanceStatusOutput{}
-		err := controllers.SetPresence(input.Body.Cookie, input.Body.CourseID)
+		err := controllers.SetPresence(input.Cookie, input.Body.CourseID)
 		if err != nil {
 			return nil, err
 		}
-		status, err := controllers.GetAttendanceStatus(input.Body.Cookie, input.Body.CourseID)
+		status, err := controllers.GetAttendanceStatus(input.Cookie, input.Body.CourseID)
 		if err != nil {
 			return nil, err
 		}
@@ -125,16 +123,36 @@ func addRoutes(api huma.API) {
 		resp.Body.Schedule = events
 		return resp, nil
 	})
+
+	// Get Grades
+	// Get Grades
+	huma.Register(api, huma.Operation{
+		OperationID: "getGrades",
+		Method:      http.MethodPost,
+		Path:        "/getGrades",
+		Summary:     "Get Grades",
+		Description: "Get the grades for the user",
+	}, func(ctx context.Context, input *struct {
+		Cookie string `header:"sdv" json:"cookie" example:"yoursupercookie" doc:"Cookie"`
+	}) (*models.GradesOutput, error) {
+		resp := &models.GradesOutput{}
+		grades, err := controllers.FetchGrades(input.Cookie)
+		if err != nil {
+			return nil, err
+		}
+		resp.Body.Grades = grades
+		return resp, nil
+	})
 }
 
 func main() {
 	router := chi.NewMux()
-	config := huma.DefaultConfig("Certificate API", "1.0.0")
+	config := huma.DefaultConfig("Pepal Helper", "3.0.0")
 	api := humachi.New(router, config)
 	addRoutes(api)
 
 	// Start API
-	err := http.ListenAndServe("0.0.0.0:8888", router)
+	err := http.ListenAndServe("0.0.0.0:8889", router)
 	if err != nil {
 		log.Error().Err(err)
 	}
