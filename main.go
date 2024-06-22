@@ -152,7 +152,7 @@ func main() {
 	addRoutes(api)
 
 	// Start API
-	err := http.ListenAndServe("0.0.0.0:8889", router)
+	err := http.ListenAndServe("0.0.0.0:8888", router)
 	if err != nil {
 		log.Error().Err(err)
 	}
