@@ -19,45 +19,45 @@ type Grade struct {
 	Comment string `json:"comment,omitempty"`
 }
 
-// FetchGrades récupère les notes de la page des notes de Pepal.
+// FetchGrades retrieves the grades from the Pepal grades page.
 func FetchGrades(cookie string) ([]models.Grade, error) {
 	godotenv.Load()
 	apiURL := os.Getenv("PEPAL_BASE_URL") + "?my=notes"
 
-	// Créer un client HTTP
+	// Create an HTTP client
 	client := &http.Client{}
 
-	// Créer la requête GET
+	// Create the GET request
 	req, err := http.NewRequest("GET", apiURL, nil)
 	if err != nil {
 		log.Error().Err(err).Msg("Error creating request")
 		return nil, fmt.Errorf("error creating request: %v", err)
 	}
 
-	// Définir les en-têtes de la requête
+	// Set the request headers
 	req.Header.Set("Cookie", "sdv="+cookie)
 
-	// Envoyer la requête
+	// Send the request
 	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	// Vérifier le code de statut HTTP
+	// Check the HTTP status code
 	if resp.StatusCode != http.StatusOK {
 		log.Error().Str("status", resp.Status).Msg("Failed to load page")
 		return nil, fmt.Errorf("failed to load page: %s", resp.Status)
 	}
 
-	// Utiliser goquery pour analyser le HTML
+	// Use goquery to parse the HTML
 	doc, err := goquery.NewDocumentFromReader(resp.Body)
 	if err != nil {
 		log.Error().Err(err).Msg("Error reading HTML")
 		return nil, fmt.Errorf("error reading HTML: %v", err)
 	}
 
-	// Extraire les notes
+	// Extract the grades
 	var grades []models.Grade
 	var currentCourse string
 	var lastGrade *models.Grade
@@ -65,7 +65,7 @@ func FetchGrades(cookie string) ([]models.Grade, error) {
 	doc.Find("table.table-bordered tbody tr").Each(func(i int, s *goquery.Selection) {
 		var grade models.Grade
 
-		// Détection des cours
+		// Detect courses
 		if s.HasClass("warning") || s.HasClass("info") {
 			currentCourse = strings.TrimSpace(s.Find("td").First().Text())
 			return
@@ -83,13 +83,13 @@ func FetchGrades(cookie string) ([]models.Grade, error) {
 			}
 		})
 
-		// Ajouter le grade si les champs obligatoires sont présents
+		// Add the grade if the required fields are present
 		if grade.Subject != "" && grade.Date != "" && grade.Grade != "" {
 			grade.Course = currentCourse
 			grades = append(grades, grade)
 			lastGrade = &grades[len(grades)-1]
 		} else if lastGrade != nil && grade.Subject == "" && grade.Date == "" && grade.Grade == "" {
-			// Ajouter le commentaire au dernier grade ajouté
+			// Add the comment to the last added grade
 			lastGrade.Comment = strings.TrimSpace(s.Text())
 		}
 	})
